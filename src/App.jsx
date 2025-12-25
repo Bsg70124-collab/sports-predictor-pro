@@ -4,8 +4,18 @@ const SportsPredictor = () => {
   const [predictions, setPredictions] = useState([]);
   const [historicalPredictions, setHistoricalPredictions] = useState([]);
   const [stats, setStats] = useState({ 
-    daily: 0, overall: 0, total: 0, byConfidence: {}, bySport: {}, recentTrend: [],
-    roi: 0, units: 0, bestStreak: 0, worstStreak: 0, bySpread: {}, byTotal: {}
+    daily: 0, 
+    overall: 0, 
+    total: 0, 
+    byConfidence: {}, 
+    bySport: {}, 
+    recentTrend: [],
+    roi: 0, 
+    units: 0, 
+    bestStreak: 0, 
+    worstStreak: 0, 
+    bySpread: {}, 
+    byTotal: {}
   });
   const [loading, setLoading] = useState(false);
   const [selectedSport, setSelectedSport] = useState('NFL');
@@ -85,7 +95,7 @@ const SportsPredictor = () => {
 
   const saveSettings = () => {
     localStorage.setItem('user-settings', JSON.stringify({ bankroll, unitSize }));
-    alert('Settings saved!');
+    window.alert('Settings saved!');
   };
 
   const fetchLiveGames = async (sport) => {
@@ -161,7 +171,11 @@ const SportsPredictor = () => {
     const overallCorrect = completedPreds.filter(p => p.correct).length;
     const overallAccuracy = completedPreds.length > 0 ? (overallCorrect / completedPreds.length * 100).toFixed(1) : 0;
 
-    const byConfidence = { high: { total: 0, correct: 0 }, medium: { total: 0, correct: 0 }, low: { total: 0, correct: 0 } };
+    const byConfidence = { 
+      high: { total: 0, correct: 0 }, 
+      medium: { total: 0, correct: 0 }, 
+      low: { total: 0, correct: 0 } 
+    };
 
     completedPreds.forEach(p => {
       const level = p.confidence >= 80 ? 'high' : p.confidence >= 70 ? 'medium' : 'low';
@@ -200,7 +214,11 @@ const SportsPredictor = () => {
     });
     const roi = completedPreds.length > 0 ? ((totalUnits / (completedPreds.length * 1.5)) * 100).toFixed(1) : 0;
 
-    let bestWinStreak = 0, worstLossStreak = 0, currentStreak = 0, isWinStreak = null;
+    let bestWinStreak = 0;
+    let worstLossStreak = 0;
+    let currentStreak = 0;
+    let isWinStreak = null;
+    
     completedPreds.forEach(p => {
       if (isWinStreak === null) {
         isWinStreak = p.correct;
@@ -218,9 +236,18 @@ const SportsPredictor = () => {
     if (!isWinStreak && currentStreak > worstLossStreak) worstLossStreak = currentStreak;
 
     setStats({
-      daily: dailyAccuracy, overall: overallAccuracy, total: completedPreds.length,
-      byConfidence, bySport, recentTrend: recent, roi, units: totalUnits.toFixed(2),
-      bestStreak: bestWinStreak, worstStreak: worstLossStreak, bySpread, byTotal
+      daily: dailyAccuracy, 
+      overall: overallAccuracy, 
+      total: completedPreds.length,
+      byConfidence, 
+      bySport, 
+      recentTrend: recent, 
+      roi, 
+      units: totalUnits.toFixed(2),
+      bestStreak: bestWinStreak, 
+      worstStreak: worstLossStreak, 
+      bySpread, 
+      byTotal
     });
   };
 
@@ -235,27 +262,30 @@ const SportsPredictor = () => {
     const medConf = completed.filter(p => p.confidence >= 70 && p.confidence < 80);
     const lowConf = completed.filter(p => p.confidence < 70);
 
-    const highAccuracy = highConf.length > 0 ? (highConf.filter(p => p.correct).length / highConf.length * 100).toFixed(1) : 0;
-    const medAccuracy = medConf.length > 0 ? (medConf.filter(p => p.correct).length / medConf.length * 100).toFixed(1) : 0;
-    const lowAccuracy = lowConf.length > 0 ? (lowConf.filter(p => p.correct).length / lowConf.length * 100).toFixed(1) : 0;
+    const highAccuracy = highConf.length > 0 ? (highConf.filter(p => p.correct).length / highConf.length * 100).toFixed(1) : '0';
+    const medAccuracy = medConf.length > 0 ? (medConf.filter(p => p.correct).length / medConf.length * 100).toFixed(1) : '0';
+    const lowAccuracy = lowConf.length > 0 ? (lowConf.filter(p => p.correct).length / lowConf.length * 100).toFixed(1) : '0';
 
     const favorites = completed.filter(p => p.spread && p.spread.includes('-'));
     const underdogs = completed.filter(p => p.spread && (p.spread.includes('+') || p.spread === 'PK'));
     
-    const favoriteAccuracy = favorites.length > 0 ? (favorites.filter(p => p.correct).length / favorites.length * 100).toFixed(1) : 0;
-    const underdogAccuracy = underdogs.length > 0 ? (underdogs.filter(p => p.correct).length / underdogs.length * 100).toFixed(1) : 0;
+    const favoriteAccuracy = favorites.length > 0 ? (favorites.filter(p => p.correct).length / favorites.length * 100).toFixed(1) : '0';
+    const underdogAccuracy = underdogs.length > 0 ? (underdogs.filter(p => p.correct).length / underdogs.length * 100).toFixed(1) : '0';
 
     const recent10 = completed.slice(-10);
-    const recent10Accuracy = recent10.length > 0 ? (recent10.filter(p => p.correct).length / recent10.length * 100).toFixed(1) : 0;
+    const recent10Accuracy = recent10.length > 0 ? (recent10.filter(p => p.correct).length / recent10.length * 100).toFixed(1) : '0';
 
-    let currentStreak = 0, streakType = null;
+    let currentStreakCount = 0;
+    let streakType = null;
     for (let i = completed.length - 1; i >= 0; i--) {
       if (streakType === null) {
         streakType = completed[i].correct ? 'win' : 'loss';
-        currentStreak = 1;
+        currentStreakCount = 1;
       } else if ((streakType === 'win' && completed[i].correct) || (streakType === 'loss' && !completed[i].correct)) {
-        currentStreak++;
-      } else break;
+        currentStreakCount++;
+      } else {
+        break;
+      }
     }
 
     const featurePerformance = {};
@@ -278,12 +308,12 @@ const SportsPredictor = () => {
     for (let threshold = 60; threshold <= 90; threshold += 5) {
       const thresholdPicks = completed.filter(p => p.confidence >= threshold);
       if (thresholdPicks.length >= 5) {
-        const roi = thresholdPicks.reduce((sum, p) => {
+        const roiValue = thresholdPicks.reduce((sum, p) => {
           const units = p.recommendedUnits || 1;
           return sum + (p.correct ? units * 0.91 : -units);
         }, 0) / thresholdPicks.length;
-        if (roi > bestROI) {
-          bestROI = roi;
+        if (roiValue > bestROI) {
+          bestROI = roiValue;
           optimalThreshold = threshold;
         }
       }
@@ -299,10 +329,13 @@ const SportsPredictor = () => {
         favorites: { accuracy: favoriteAccuracy, count: favorites.length },
         underdogs: { accuracy: underdogAccuracy, count: underdogs.length }
       },
-      recent: { accuracy: recent10Accuracy, streak: { type: streakType, count: currentStreak } },
+      recent: { 
+        accuracy: recent10Accuracy, 
+        streak: { type: streakType || 'none', count: currentStreakCount } 
+      },
       featureImportance: featurePerformance,
       optimalThreshold: optimalThreshold,
-      bestROI: bestROI.toFixed(2)
+      bestROI: bestROI === -Infinity ? '0.00' : bestROI.toFixed(2)
     });
   };
 
@@ -327,23 +360,27 @@ const SportsPredictor = () => {
       if (completed.length >= 20 && mlModel && modelInsights?.featureImportance) {
         Object.keys(modelInsights.featureImportance).forEach(feature => {
           const performance = modelInsights.featureImportance[feature];
-          const accuracy = performance.correct / performance.total;
-          
-          if (accuracy > 0.7 && updatedWeights[feature]) {
-            updatedWeights[feature] *= 1.1;
-          } else if (accuracy < 0.4 && updatedWeights[feature]) {
-            updatedWeights[feature] *= 0.9;
+          if (performance && performance.total > 0) {
+            const accuracy = performance.correct / performance.total;
+            
+            if (accuracy > 0.7 && updatedWeights && updatedWeights[feature]) {
+              updatedWeights[feature] *= 1.1;
+            } else if (accuracy < 0.4 && updatedWeights && updatedWeights[feature]) {
+              updatedWeights[feature] *= 0.9;
+            }
           }
         });
         
-        const totalWeight = Object.values(updatedWeights).reduce((a, b) => a + b, 0);
-        Object.keys(updatedWeights).forEach(key => {
-          updatedWeights[key] /= totalWeight;
-        });
-        
-        const newModel = {...mlModel, weights: updatedWeights, iterations: mlModel.iterations + 1};
-        setMlModel(newModel);
-        localStorage.setItem('ml-model', JSON.stringify(newModel));
+        if (updatedWeights) {
+          const totalWeight = Object.values(updatedWeights).reduce((a, b) => a + b, 0);
+          Object.keys(updatedWeights).forEach(key => {
+            updatedWeights[key] /= totalWeight;
+          });
+          
+          const newModel = {...mlModel, weights: updatedWeights, iterations: mlModel.iterations + 1};
+          setMlModel(newModel);
+          localStorage.setItem('ml-model', JSON.stringify(newModel));
+        }
       }
       
       if (completed.length >= 10) {
@@ -356,14 +393,14 @@ const SportsPredictor = () => {
         else if (recentAccuracy <= 0.4) confidenceAdjustment = -5;
 
         if (modelInsights) {
-          const highConfAccuracy = parseFloat(modelInsights.calibration.high.accuracy);
-          if (highConfAccuracy < 65 && modelInsights.calibration.high.count >= 5) {
+          const highConfAccuracy = parseFloat(modelInsights.calibration?.high?.accuracy || '0');
+          if (highConfAccuracy < 65 && (modelInsights.calibration?.high?.count || 0) >= 5) {
             confidenceAdjustment -= 3;
           }
         }
       }
 
-      const predictions = liveGames.map((game, idx) => {
+      const newPredictions = liveGames.map((game, idx) => {
         const weights = updatedWeights || {
           recordDifferential: 0.25,
           homeAdvantage: 0.15,
@@ -452,11 +489,11 @@ const SportsPredictor = () => {
         };
       });
 
-      setPredictions(predictions);
-      localStorage.setItem('todays-predictions', JSON.stringify(predictions));
+      setPredictions(newPredictions);
+      localStorage.setItem('todays-predictions', JSON.stringify(newPredictions));
       localStorage.setItem('last-fetch-date', new Date().toDateString());
       
-      const updated = [...historicalPredictions, ...predictions];
+      const updated = [...historicalPredictions, ...newPredictions];
       setHistoricalPredictions(updated);
       localStorage.setItem('historical-predictions', JSON.stringify(updated));
       
@@ -481,18 +518,28 @@ const SportsPredictor = () => {
     
     const updated = historicalPredictions.map(p => {
       if (p.id === predId) {
-        return { ...p, actual: isCorrect ? pred.prediction : 'Opponent', correct: isCorrect, updatedAt: new Date().toISOString() };
+        return { 
+          ...p, 
+          actual: isCorrect ? pred.prediction : 'Opponent', 
+          correct: isCorrect, 
+          updatedAt: new Date().toISOString() 
+        };
       }
       return p;
     });
 
     if (!historicalPredictions.find(p => p.id === predId)) {
-      const newPred = { ...pred, actual: isCorrect ? pred.prediction : 'Opponent', correct: isCorrect, updatedAt: new Date().toISOString() };
+      const newPred = { 
+        ...pred, 
+        actual: isCorrect ? pred.prediction : 'Opponent', 
+        correct: isCorrect, 
+        updatedAt: new Date().toISOString() 
+      };
       updated.push(newPred);
     }
 
     setHistoricalPredictions(updated);
-    setPredictions(predictions.map(p => p.id === predId ? updated.find(u => u.id === p.id) : p));
+    setPredictions(predictions.map(p => p.id === predId ? (updated.find(u => u.id === p.id) || p) : p));
     localStorage.setItem('historical-predictions', JSON.stringify(updated));
     calculateStats(updated);
     analyzeModelPerformance(updated);
@@ -531,14 +578,51 @@ const SportsPredictor = () => {
   };
 
   const clearAllData = () => {
-    if (confirm('Clear ALL data including history? This cannot be undone.')) {
+    if (window.confirm('Clear ALL data including history? This cannot be undone.')) {
       setPredictions([]);
       setHistoricalPredictions([]);
-      setStats({ daily: 0, overall: 0, total: 0, byConfidence: {}, bySport: {}, recentTrend: [], roi: 0, units: 0, bestStreak: 0, worstStreak: 0, bySpread: {}, byTotal: {} });
+      setStats({ 
+        daily: 0, 
+        overall: 0, 
+        total: 0, 
+        byConfidence: {}, 
+        bySport: {}, 
+        recentTrend: [], 
+        roi: 0, 
+        units: 0, 
+        bestStreak: 0, 
+        worstStreak: 0, 
+        bySpread: {}, 
+        byTotal: {} 
+      });
       setModelInsights(null);
       initializeMLModel();
       localStorage.clear();
     }
+  };
+
+  // Helper function to safely get nested values
+  const safeGet = (obj, path, defaultValue = '0') => {
+    try {
+      const keys = path.split('.');
+      let result = obj;
+      for (const key of keys) {
+        result = result?.[key];
+      }
+      return result ?? defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  };
+
+  const getConfidenceClass = (confidence) => {
+    if (confidence >= 80) return 'bg-green-500/20 text-green-400 border border-green-500/30';
+    if (confidence >= 70) return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+    return 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
+  };
+
+  const getUnitsClass = (units) => {
+    return parseFloat(units) >= 0 ? 'text-green-400' : 'text-red-400';
   };
 
   return (
@@ -554,6 +638,7 @@ const SportsPredictor = () => {
           </div>
         </div>
 
+        {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 mb-4">
           <div className="bg-slate-800/50 rounded-lg p-3 border border-blue-500/20">
             <div className="text-xs text-slate-400 mb-1">📅 Today</div>
@@ -569,55 +654,90 @@ const SportsPredictor = () => {
           </div>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-yellow-500/20">
             <div className="text-xs text-slate-400 mb-1">📊 Units</div>
-            <div className={'text-2xl font-bold ' + (parseFloat(stats.units) >= 0 ? 'text-green-400' : 'text-red-400')}>
+            <div className={`text-2xl font-bold ${getUnitsClass(stats.units)}`}>
               {parseFloat(stats.units) > 0 ? '+' : ''}{stats.units}
             </div>
           </div>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-orange-500/20">
             <div className="text-xs text-slate-400 mb-1">⚡ Streak</div>
             <div className="text-2xl font-bold text-orange-400">
-              {modelInsights?.recent.streak.count || 0}{modelInsights?.recent.streak.type === 'win' ? 'W' : 'L'}
+              {modelInsights?.recent?.streak?.count || 0}
+              {modelInsights?.recent?.streak?.type === 'win' ? 'W' : 'L'}
             </div>
           </div>
         </div>
 
+        {/* Tab Navigation */}
         <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
           {['predictions', 'analytics', 'ml-insights', 'live', 'bankroll', 'history'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={'py-2 px-4 rounded-lg text-sm whitespace-nowrap ' + (activeTab === tab ? 'bg-blue-600' : 'bg-slate-800/50')}
+              className={`py-2 px-4 rounded-lg text-sm whitespace-nowrap ${
+                activeTab === tab ? 'bg-blue-600' : 'bg-slate-800/50'
+              }`}
             >
               {tab === 'ml-insights' ? 'ML Insights' : tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
         </div>
 
-        {error && <div className="bg-red-500/20 border border-red-500 rounded p-3 mb-4 text-sm">{error}</div>}
+        {error && (
+          <div className="bg-red-500/20 border border-red-500 rounded p-3 mb-4 text-sm">
+            {error}
+          </div>
+        )}
 
+        {/* Predictions Tab */}
         {activeTab === 'predictions' && (
           <div>
             <div className="flex gap-2 mb-4">
-              <select value={selectedSport} onChange={(e) => setSelectedSport(e.target.value)} className="bg-slate-800 px-3 py-2 rounded border border-slate-700 text-sm">
+              <select 
+                value={selectedSport} 
+                onChange={(e) => setSelectedSport(e.target.value)} 
+                className="bg-slate-800 px-3 py-2 rounded border border-slate-700 text-sm"
+              >
                 <option>NFL</option>
                 <option>NBA</option>
               </select>
-              <button onClick={generatePredictions} disabled={loading} className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 py-2 px-4 rounded font-semibold text-sm disabled:opacity-50">
+              <button 
+                onClick={generatePredictions} 
+                disabled={loading} 
+                className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 py-2 px-4 rounded font-semibold text-sm disabled:opacity-50"
+              >
                 {loading ? '⏳ Fetching...' : '🔄 Get Live Games'}
               </button>
               {historicalPredictions.length > 0 && (
                 <>
-                  <button onClick={exportData} className="px-3 py-2 bg-green-600/20 border border-green-600/50 rounded text-xs" title="Export CSV">📥</button>
-                  <button onClick={exportMLModel} className="px-3 py-2 bg-purple-600/20 border border-purple-600/50 rounded text-xs" title="Export ML Model">🤖</button>
-                  <button onClick={clearAllData} className="px-3 py-2 bg-red-600/20 border border-red-600/50 rounded text-xs" title="Clear Data">🗑️</button>
+                  <button 
+                    onClick={exportData} 
+                    className="px-3 py-2 bg-green-600/20 border border-green-600/50 rounded text-xs" 
+                    title="Export CSV"
+                  >
+                    📥
+                  </button>
+                  <button 
+                    onClick={exportMLModel} 
+                    className="px-3 py-2 bg-purple-600/20 border border-purple-600/50 rounded text-xs" 
+                    title="Export ML Model"
+                  >
+                    🤖
+                  </button>
+                  <button 
+                    onClick={clearAllData} 
+                    className="px-3 py-2 bg-red-600/20 border border-red-600/50 rounded text-xs" 
+                    title="Clear Data"
+                  >
+                    🗑️
+                  </button>
                 </>
               )}
             </div>
 
-            {predictions.length > 0 && predictions[0].adjustedByModel && (
+            {predictions.length > 0 && predictions[0]?.adjustedByModel && (
               <div className="bg-purple-500/10 rounded p-3 mb-4 border border-purple-500/30">
                 <div className="text-xs font-semibold text-purple-300">
-                  🧠 Self-Learning Active: {predictions[0].adjustmentAmount > 0 ? '+' : ''}{predictions[0].adjustmentAmount}% confidence adjustment
+                  🧠 Self-Learning Active: {(predictions[0]?.adjustmentAmount || 0) > 0 ? '+' : ''}{predictions[0]?.adjustmentAmount || 0}% confidence adjustment
                 </div>
                 {mlModel && mlModel.iterations > 0 && (
                   <div className="text-xs text-purple-200 mt-1">
@@ -631,7 +751,7 @@ const SportsPredictor = () => {
               {predictions.length === 0 ? (
                 <div className="bg-slate-800/50 rounded p-8 text-center">
                   <div className="text-4xl mb-2">📡</div>
-                  <p className="text-sm text-slate-400">Click "Get Live Games" to fetch real matchups from ESPN</p>
+                  <p className="text-sm text-slate-400">Click &quot;Get Live Games&quot; to fetch real matchups from ESPN</p>
                   <p className="text-xs text-slate-500 mt-2">Live odds • Team records • Venue info</p>
                 </div>
               ) : (
@@ -641,10 +761,10 @@ const SportsPredictor = () => {
                       <div>
                         <h3 className="font-bold text-lg">{pred.game}</h3>
                         <div className="text-xs text-slate-400 mt-1">
-                          {pred.sport} • {pred.factors.venue}
+                          {pred.sport} • {pred.factors?.venue || 'TBD'}
                         </div>
                       </div>
-                      <div className={'px-2 py-1 rounded text-xs font-semibold ' + (pred.confidence >= 80 ? 'bg-green-500/20 text-green-400 border border-green-500/30' : pred.confidence >= 70 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30')}>
+                      <div className={`px-2 py-1 rounded text-xs font-semibold ${getConfidenceClass(pred.confidence)}`}>
                         {pred.confidence}% • {pred.recommendedUnits}U
                       </div>
                     </div>
@@ -673,7 +793,9 @@ const SportsPredictor = () => {
                       </div>
                       <div>
                         <span className="text-slate-500">Odds: </span>
-                        <span className="text-slate-300">{pred.impliedOdds > 0 ? '+' : ''}{pred.impliedOdds}</span>
+                        <span className="text-slate-300">
+                          {Number(pred.impliedOdds) > 0 ? '+' : ''}{pred.impliedOdds}
+                        </span>
                       </div>
                       {pred.modelVersion !== undefined && (
                         <div>
@@ -686,26 +808,35 @@ const SportsPredictor = () => {
                     <p className="text-xs text-slate-300 mb-2">{pred.reasoning}</p>
 
                     <div className="bg-slate-900/50 rounded p-2 mb-3 space-y-1 text-xs">
-                      {Object.entries(pred.factors).map(([key, value]) => (
-                        <div key={key}><span className="text-slate-500">{key}: </span><span className="text-slate-300">{value}</span></div>
+                      {pred.factors && Object.entries(pred.factors).map(([key, value]) => (
+                        <div key={key}>
+                          <span className="text-slate-500">{key}: </span>
+                          <span className="text-slate-300">{String(value)}</span>
+                        </div>
                       ))}
                     </div>
 
                     {!pred.actual && (
                       <div className="flex gap-2 pt-3 border-t border-slate-700">
-                        <button onClick={() => quickUpdate(pred.id, true)} className="flex-1 px-3 py-1.5 bg-green-600/20 border border-green-600/50 rounded text-xs font-semibold">
+                        <button 
+                          onClick={() => quickUpdate(pred.id, true)} 
+                          className="flex-1 px-3 py-1.5 bg-green-600/20 border border-green-600/50 rounded text-xs font-semibold"
+                        >
                           ✓ Won
                         </button>
-                        <button onClick={() => quickUpdate(pred.id, false)} className="flex-1 px-3 py-1.5 bg-red-600/20 border border-red-600/50 rounded text-xs font-semibold">
+                        <button 
+                          onClick={() => quickUpdate(pred.id, false)} 
+                          className="flex-1 px-3 py-1.5 bg-red-600/20 border border-red-600/50 rounded text-xs font-semibold"
+                        >
                           ✗ Lost
                         </button>
                       </div>
                     )}
 
                     {pred.actual && (
-                      <div className={'pt-3 border-t flex items-center gap-2 ' + (pred.correct ? 'border-green-500/30' : 'border-red-500/30')}>
+                      <div className={`pt-3 border-t flex items-center gap-2 ${pred.correct ? 'border-green-500/30' : 'border-red-500/30'}`}>
                         <span className="text-xl">{pred.correct ? '✅' : '❌'}</span>
-                        <span className={'text-xs font-semibold ' + (pred.correct ? 'text-green-400' : 'text-red-400')}>
+                        <span className={`text-xs font-semibold ${pred.correct ? 'text-green-400' : 'text-red-400'}`}>
                           {pred.correct ? 'Correct!' : 'Incorrect'} - Actual: {pred.actual}
                         </span>
                       </div>
@@ -717,6 +848,7 @@ const SportsPredictor = () => {
           </div>
         )}
 
+        {/* ML Insights Tab */}
         {activeTab === 'ml-insights' && (
           <div className="space-y-4">
             {!mlModel || stats.total < 10 ? (
@@ -746,18 +878,20 @@ const SportsPredictor = () => {
                 <div className="bg-slate-800/50 rounded p-4">
                   <h3 className="font-bold mb-3">⚖️ Feature Weights (Dynamic)</h3>
                   <div className="space-y-2">
-                    {Object.entries(mlModel.weights).map(([feature, weight]) => {
-                      const percentage = (weight * 100).toFixed(1);
+                    {mlModel.weights && Object.entries(mlModel.weights).map(([feature, weight]) => {
+                      const percentage = (Number(weight) * 100).toFixed(1);
                       return (
                         <div key={feature}>
                           <div className="flex justify-between text-xs mb-1">
-                            <span className="text-slate-300 capitalize">{feature.replace(/([A-Z])/g, ' $1')}</span>
+                            <span className="text-slate-300 capitalize">
+                              {feature.replace(/([A-Z])/g, ' $1')}
+                            </span>
                             <span className="text-slate-400">{percentage}%</span>
                           </div>
                           <div className="w-full bg-slate-900 rounded-full h-2">
                             <div 
                               className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500"
-                              style={{ width: `${percentage}%` }}
+                              style={{ width: `${Math.min(100, Number(percentage))}%` }}
                             />
                           </div>
                         </div>
@@ -774,12 +908,15 @@ const SportsPredictor = () => {
                     <h3 className="font-bold mb-3">📊 Feature Performance</h3>
                     <div className="space-y-2">
                       {Object.entries(modelInsights.featureImportance)
+                        .filter(([, data]) => data && data.total > 0)
                         .sort((a, b) => (b[1].correct / b[1].total) - (a[1].correct / a[1].total))
                         .map(([feature, data]) => {
                           const accuracy = ((data.correct / data.total) * 100).toFixed(1);
                           return (
                             <div key={feature} className="flex justify-between items-center">
-                              <span className="text-sm text-slate-300 capitalize">{feature.replace(/([A-Z])/g, ' $1')}</span>
+                              <span className="text-sm text-slate-300 capitalize">
+                                {feature.replace(/([A-Z])/g, ' $1')}
+                              </span>
                               <div className="flex items-center gap-2">
                                 <span className={`text-sm font-semibold ${parseFloat(accuracy) >= 60 ? 'text-green-400' : 'text-red-400'}`}>
                                   {accuracy}%
@@ -818,9 +955,13 @@ const SportsPredictor = () => {
           </div>
         )}
 
+        {/* Live Tab */}
         {activeTab === 'live' && (
           <div className="space-y-3">
-            <button onClick={fetchLiveScores} className="w-full bg-red-600/20 border border-red-600/50 py-2 rounded font-semibold text-sm">
+            <button 
+              onClick={fetchLiveScores} 
+              className="w-full bg-red-600/20 border border-red-600/50 py-2 rounded font-semibold text-sm"
+            >
               🔴 Refresh Live Scores
             </button>
             {liveScores.length === 0 ? (
@@ -853,6 +994,7 @@ const SportsPredictor = () => {
           </div>
         )}
 
+        {/* Analytics Tab */}
         {activeTab === 'analytics' && (
           <div className="space-y-4">
             {!modelInsights || stats.total < 5 ? (
@@ -867,18 +1009,30 @@ const SportsPredictor = () => {
                   <div className="grid grid-cols-3 gap-2">
                     <div className="bg-slate-900/50 rounded p-2">
                       <p className="text-xs text-slate-500 mb-1">High (80%+)</p>
-                      <p className="text-xl font-bold text-green-400">{modelInsights.calibration.high.accuracy}%</p>
-                      <p className="text-xs text-slate-400">{modelInsights.calibration.high.count} picks</p>
+                      <p className="text-xl font-bold text-green-400">
+                        {modelInsights?.calibration?.high?.accuracy || '0'}%
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {modelInsights?.calibration?.high?.count || 0} picks
+                      </p>
                     </div>
                     <div className="bg-slate-900/50 rounded p-2">
                       <p className="text-xs text-slate-500 mb-1">Med (70-79%)</p>
-                      <p className="text-xl font-bold text-yellow-400">{modelInsights.calibration.medium.accuracy}%</p>
-                      <p className="text-xs text-slate-400">{modelInsights.calibration.medium.count} picks</p>
+                      <p className="text-xl font-bold text-yellow-400">
+                        {modelInsights?.calibration?.medium?.accuracy || '0'}%
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {modelInsights?.calibration?.medium?.count || 0} picks
+                      </p>
                     </div>
                     <div className="bg-slate-900/50 rounded p-2">
-                      <p className="text-xs text-slate-500 mb-1">Low (<70%)</p>
-                      <p className="text-xl font-bold text-orange-400">{modelInsights.calibration.low.accuracy}%</p>
-                      <p className="text-xs text-slate-400">{modelInsights.calibration.low.count} picks</p>
+                      <p className="text-xs text-slate-500 mb-1">Low (&lt;70%)</p>
+                      <p className="text-xl font-bold text-orange-400">
+                        {modelInsights?.calibration?.low?.accuracy || '0'}%
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {modelInsights?.calibration?.low?.count || 0} picks
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -887,17 +1041,26 @@ const SportsPredictor = () => {
                   <h3 className="font-bold mb-3">⚡ Recent Form (Last 10)</h3>
                   <div className="flex justify-between mb-3">
                     <div>
-                      <p className="text-3xl font-bold text-orange-400">{modelInsights.recent.accuracy}%</p>
+                      <p className="text-3xl font-bold text-orange-400">
+                        {modelInsights?.recent?.accuracy || '0'}%
+                      </p>
                       <p className="text-xs text-slate-400">Win Rate</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-3xl font-bold text-orange-400">{modelInsights.recent.streak.count}</p>
-                      <p className="text-xs text-slate-400">{modelInsights.recent.streak.type === 'win' ? 'Win' : 'Loss'} Streak</p>
+                      <p className="text-3xl font-bold text-orange-400">
+                        {modelInsights?.recent?.streak?.count || 0}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {modelInsights?.recent?.streak?.type === 'win' ? 'Win' : 'Loss'} Streak
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-1">
                     {stats.recentTrend.map((result, i) => (
-                      <div key={i} className={'flex-1 h-6 rounded ' + (result ? 'bg-green-500' : 'bg-red-500')} />
+                      <div 
+                        key={i} 
+                        className={`flex-1 h-6 rounded ${result ? 'bg-green-500' : 'bg-red-500'}`} 
+                      />
                     ))}
                   </div>
                 </div>
@@ -906,6 +1069,7 @@ const SportsPredictor = () => {
           </div>
         )}
 
+        {/* Bankroll Tab */}
         {activeTab === 'bankroll' && (
           <div className="space-y-4">
             <div className="bg-slate-800/50 rounded p-4">
@@ -913,13 +1077,26 @@ const SportsPredictor = () => {
               <div className="space-y-3">
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">Starting Bankroll ($)</label>
-                  <input type="number" value={bankroll} onChange={(e) => setBankroll(Number(e.target.value))} className="w-full bg-slate-900 px-3 py-2 rounded border border-slate-700 text-sm" />
+                  <input 
+                    type="number" 
+                    value={bankroll} 
+                    onChange={(e) => setBankroll(Number(e.target.value))} 
+                    className="w-full bg-slate-900 px-3 py-2 rounded border border-slate-700 text-sm" 
+                  />
                 </div>
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">Unit Size ($)</label>
-                  <input type="number" value={unitSize} onChange={(e) => setUnitSize(Number(e.target.value))} className="w-full bg-slate-900 px-3 py-2 rounded border border-slate-700 text-sm" />
+                  <input 
+                    type="number" 
+                    value={unitSize} 
+                    onChange={(e) => setUnitSize(Number(e.target.value))} 
+                    className="w-full bg-slate-900 px-3 py-2 rounded border border-slate-700 text-sm" 
+                  />
                 </div>
-                <button onClick={saveSettings} className="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded font-semibold text-sm">
+                <button 
+                  onClick={saveSettings} 
+                  className="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded font-semibold text-sm"
+                >
                   💾 Save Settings
                 </button>
               </div>
@@ -938,13 +1115,13 @@ const SportsPredictor = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Units Won/Lost</span>
-                  <span className={'font-bold ' + (parseFloat(stats.units) >= 0 ? 'text-green-400' : 'text-red-400')}>
+                  <span className={`font-bold ${getUnitsClass(stats.units)}`}>
                     {parseFloat(stats.units) > 0 ? '+' : ''}{stats.units}U
                   </span>
                 </div>
                 <div className="flex justify-between border-t border-slate-700 pt-2 mt-2">
                   <span className="text-slate-400">Profit/Loss</span>
-                  <span className={'font-bold text-lg ' + (parseFloat(stats.units) >= 0 ? 'text-green-400' : 'text-red-400')}>
+                  <span className={`font-bold text-lg ${getUnitsClass(stats.units)}`}>
                     {parseFloat(stats.units) >= 0 ? '+' : ''}${(parseFloat(stats.units) * unitSize).toFixed(2)}
                   </span>
                 </div>
@@ -959,6 +1136,7 @@ const SportsPredictor = () => {
           </div>
         )}
 
+        {/* History Tab */}
         {activeTab === 'history' && (
           <div className="space-y-2">
             {historicalPredictions.filter(p => p.actual).length === 0 ? (
@@ -968,11 +1146,16 @@ const SportsPredictor = () => {
               </div>
             ) : (
               historicalPredictions.filter(p => p.actual).reverse().map((pred) => (
-                <div key={pred.id} className={'bg-slate-800/50 rounded p-3 border ' + (pred.correct ? 'border-green-500/30' : 'border-red-500/30')}>
+                <div 
+                  key={pred.id} 
+                  className={`bg-slate-800/50 rounded p-3 border ${pred.correct ? 'border-green-500/30' : 'border-red-500/30'}`}
+                >
                   <div className="flex justify-between items-center">
                     <div className="flex-1">
                       <p className="font-semibold text-sm">{pred.game}</p>
-                      <p className="text-xs text-slate-400">Predicted: {pred.prediction} | Actual: {pred.actual}</p>
+                      <p className="text-xs text-slate-400">
+                        Predicted: {pred.prediction} | Actual: {pred.actual}
+                      </p>
                       <p className="text-xs text-slate-500 mt-1">
                         {new Date(pred.date).toLocaleDateString()} • {pred.confidence}% • {pred.recommendedUnits}U
                       </p>
